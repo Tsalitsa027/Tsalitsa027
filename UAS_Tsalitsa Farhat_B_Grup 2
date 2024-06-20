@@ -1,0 +1,102 @@
+library(fma)
+library(readxl)
+library(tseries)
+library(lmtest)
+library(forecast)
+terban <- read.table("C:/Users/user/Downloads/Rstudio/data mobil.csv", sep=",", header=TRUE)
+str(terban)
+View(terban)
+
+plot(terban$Jumlah, type="o",pch=16,cex=.5,xlab='year',ylab='jumlah mobil')
+acf(terban$Jumlah,lag.max=25,type="correlation",main="ACF for the Number")
+acf(terban$Jumlah, lag.max=25,type="partial",main="PACF for the Number")
+
+plot(terban1, type="o",pch=16,cex=.5,xlab='year',ylab='jumlah mobil')
+acf(terban1,lag.max=25,type="correlation",main="ACF for the Number")
+acf(terban1, lag.max=40,type="partial",main="PACF for the Number")
+
+terban2=diff(terban1)
+plot(terban2, type="o",pch=16,cex=.5,xlab='year',ylab='jumlah mobil')
+acf(terban2,lag.max=25,type="correlation",main="ACF for the Number \nof Loan Applications")
+acf(terban2, lag.max=25,type="partial",main="PACF for the Number \nof Loan Applications")
+
+mobil1=arima(terban$Jumlah, order=c(1, 0, 0))
+mobil2=arima(terban$Jumlah, order=c(0, 0, 1))
+mobil3=arima(terban$Jumlah, order=c(1, 0, 1))
+mobil4=arima(terban$Jumlah, order=c(1, 2, 1))
+mobil5=arima(terban$Jumlah, order=c(2, 2, 1))
+
+mobil1
+mobil2
+mobil3
+mobil4
+mobil5
+model=c("Model 1", "Model 2", "Model 3", "Model 4" )
+AIC=c(mobil1$aic, mobil2$aic, mobil3$aic, mobil4$aic)
+data.frame(model, AIC)
+
+model1=arima(terban$Jumlah, order=c(1, 0, 0))
+model2=arima(terban$Jumlah, order=c(0, 0, 1))
+model3=arima(terban$Jumlah, order=c(1, 0, 1))
+
+model1
+model2
+model3
+
+model=c("Model 1", "Model 2", "Model 3", "Model 4" )
+AIC=c(mobil1$aic, mobil2$aic, mobil3$aic, mobil4$aic)
+data.frame(model, AIC)
+
+library(lmtest)
+coeftest(mobil1)
+coeftest(mobil2)
+coeftest(mobil3)
+coeftest(mobil4)
+
+library(forecast)
+Box.test(mobil1$residuals,lag= 36, fitdf= 1, type="Ljung")
+Box.test(mobil1$residuals,lag= 24, fitdf= 1, type="Ljung")
+Box.test(mobil1$residuals,lag= 12, fitdf= 1, type="Ljung")
+
+Box.test(mobil2$residuals,lag= 36, fitdf= 3, type="Ljung")
+Box.test(mobil2$residuals,lag= 24, fitdf= 3, type="Ljung")
+Box.test(mobil2$residuals,lag= 12, fitdf= 3, type="Ljung")
+
+Box.test(mobil3$residuals,lag= 36, fitdf= 1, type="Ljung")
+Box.test(mobil3$residuals,lag= 24, fitdf= 1, type="Ljung")
+Box.test(mobil3$residuals,lag= 12, fitdf= 1, type="Ljung")
+
+Box.test(mobil4$residuals,lag= 36, fitdf= 1, type="Ljung")
+Box.test(mobil4$residuals,lag= 24, fitdf= 1, type="Ljung")
+Box.test(mobil4$residuals,lag= 12, fitdf= 1, type="Ljung")
+
+library(nortest)
+ad.test(mobil1$residuals)
+ad.test(mobil2$residuals)
+ad.test(mobil3$residuals)
+ad.test(mobil4$residuals)
+
+Model=c("Model 1", "Model 2", "Model 3", "Model 4" )
+AIC1=c(mobil1$aic, mobil2$aic, mobil3$aic, mobil4$aic)
+data.frame(Model, AIC1)
+
+
+date=c(1:39)
+fit.model<-as.vector(fitted(mobil2))
+perf=data.frame(date, terban$Jumlah, fit.model)
+plot(x=perf$date, y=terban$Jumlah, type="p",pch=16,cex=.5, xlab="date",ylab="jumlah mobil", col="black", lwd=1)
+lines.default(x=perf$date, y=fit.model, col="red", type="l", pch=16, cex=.5, lwd=2)
+legend(35, 240,legend=expression(y(t),hat(y)(t)), col = c("black", "red"), pch=c(16, NA),lwd=1:2,cex=.55)
+
+forcast=as.array(forecast(mobil2,h=10))
+forcast
+ls(forcast)
+
+plot(terban$Jumlah, type="o", pch=16, cex=.5, xlab="Date", ylab="jumlah mobil", xaxt='n', xlim=c(1,54), ylim=c(120,300))
+axis(1, seq(1,54,5), terban[seq(1, 54, 5),1])
+lines(40:49, forcast$mean, col="blue")
+lines(40:49, forcast$lower[,2], col="red")
+lines(40:49, forcast$upper[,2], col="red")
+legend(3, 300, c("y", "Forecast", "95% LPL", "95% UPL"), pch=c(16, NA, NA, NA), lwd=c(NA, .5,.5,.5), cex=.55, col = c("black", "grey68", "black", "black"))
+
+
